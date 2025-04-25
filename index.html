@@ -1,0 +1,184 @@
+<!-- Adaptación para que una alternativa pueda aumentar el puntaje de varios candidatos -->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cuestionario IdeoMatch</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f2f5;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .container {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            width: 90%;
+            max-width: 700px;
+            text-align: center;
+            overflow-y: auto;
+        }
+        .question {
+            margin-bottom: 1.5rem;
+            font-size: 1.4rem;
+            font-weight: bold;
+        }
+        .options {
+            margin-top: 1rem;
+        }
+        .options button {
+            display: block;
+            width: 100%;
+            margin: 0.5rem 0;
+            padding: 0.75rem;
+            font-size: 1.1rem;
+            font-weight: 500;
+            border: 2px solid #007bff;
+            border-radius: 8px;
+            background-color: #ffffff;
+            color: #007bff;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .options button:hover {
+            background-color: #007bff;
+            color: #ffffff;
+        }
+        #next-button {
+            margin-top: 2rem;
+            padding: 0.75rem 2rem;
+            font-size: 1rem;
+            border: none;
+            background-color: #28a745;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+            display: none;
+        }
+        #next-button:hover {
+            background-color: #218838;
+        }
+        #result ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        #result li {
+            margin: 0.5rem 0;
+            font-size: 1.1rem;
+        }
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Cuestionario IdeoMatch</h1>
+        <div id="question-container"></div>
+        <button id="next-button">Siguiente</button>
+        <div id="result" class="hidden"></div>
+    </div>
+
+    <script>
+        const candidates = ["Jeannette Jara", "Gonzalo Winter", "Carolina Tohá", "Paulina Vodanovic", "Jaime Mulet", "Evelyn Matthei", "José Antonio Kast", "Johannes Kaiser", "Franco Parisi"];
+
+        const questions = [
+            { text: "¿Qué modelo económico considera más adecuado para el país?", options: [ 
+                        { text: "Estado fuerte con intervención en la economía", values: ["Jeannette Jara", "Jaime Mulet"] }, 
+                        { text: "Economía mixta con participación estatal y privada", values: ["Gonzalo Winter", "Carolina Tohá", "Paulina Vodanovic"] }, 
+                        { text: "Libre mercado con mínima intervención estatal", values: ["Evelyn Matthei", "José Antonio Kast", "Johannes Kaiser", "Franco Parisi"] } ] },
+            { text: "¿Cuál debería ser la prioridad en materia de seguridad?", options: [ 
+                        { text: "Prevención social y programas comunitarios", values: ["Jeannette Jara", "Gonzalo Winter"] }, 
+                        { text: "Equilibrio entre prevención y aplicación de leyes", values: ["Carolina Tohá", "Paulina Vodanovic", "Jaime Mulet"] }, 
+                        { text: "Refuerzo de la seguridad mediante normas más estrictas y mayor presencia policial", values: ["Evelyn Matthei", "José Antonio Kast", "Johannes Kaiser", "Franco Parisi"] } ] },
+            { text: "¿Qué rol debería tener el Estado respecto a la protección de las minorías y diversidades? (pueblos originarios, diversidad sexual y de género, personas con discapacidad, comunidades religiosas, inmigrantes)", options: [ 
+                        { text: "Promover activamente políticas públicas", values: ["Jeannette Jara", "Gonzalo Winter", "Carolina Tohá", "Paulina Vodanovic", "Jaime Mulet"] }, 
+                        { text: "Regirse por mismos derechos para todos", values: ["Evelyn Matthei", "José Antonio Kast", "Johannes Kaiser", "Franco Parisi"] } ] },
+            { text: "¿Qué nivel de importancia debería tener el medio ambiente en el desarrollo económico y en las políticas públicas del país?", options: [ 
+                        { text: "Medio ambiente como eje central", values: ["Jeannette Jara", "Gonzalo Winter", "Jaime Mulet"] }, 
+                        { text: "Equilibrio entre crecimiento y protección", values: ["Carolina Tohá", "Paulina Vodanovic", "Franco Parisi"] }, 
+                        { text: "Priorizar crecimiento económico", values: ["Evelyn Matthei", "José Antonio Kast", "Johannes Kaiser"] } ] },
+            { text: "¿Cuál debería ser la política migratoria del país?", options: [ 
+                        { text: "Apertura y acogida con integración social", values: ["Jeannette Jara", "Gonzalo Winter"] }, 
+                        { text: "Control y regulación equilibrada", values: ["Carolina Tohá", "Paulina Vodanovic", "Jaime Mulet", "Evelyn Matthei"] }, 
+                        { text: "Restricción y cierre de fronteras", values: ["Franco Parisi", "José Antonio Kast", "Johannes Kaiser"] } ] },
+            { text: "¿Cuál debería ser la política de selección en el sistema escolar chileno?", options: [ 
+                        { text: "Prohibir todo tipo de selección", values: ["Jeannette Jara", "Gonzalo Winter", "Paulina Vodanovic", "Jaime Mulet"] }, 
+                        { text: "Permitir selección en casos específicos", values: ["Carolina Tohá", "Evelyn Matthei", "Franco Parisi"] }, 
+                        { text: "Libertad total para definir criterios de admisión", values: ["José Antonio Kast", "Johannes Kaiser"] } ] },
+            { text: "¿Cuál es su postura respecto al aborto en Chile?", options: [ 
+                        { text: "Despenalización total, hasta un plazo máximo de entre 12-24 semanas", values: ["Jeannette Jara", "Gonzalo Winter", "Carolina Tohá"] }, 
+                        { text: "Mantener la ley actual (tres causales)", values: ["Paulina Vodanovic", "Jaime Mulet", "Evelyn Matthei", "Franco Parisi"] }, 
+                        { text: "Prohibición total del aborto", values: ["José Antonio Kast", "Johannes Kaiser"] } ] },
+            { text: "¿Cómo evalúa el golpe de Estado de 1973?", options: [ 
+                        { text: "Fue un quiebre democrático injustificable", values: ["Jeannette Jara", "Gonzalo Winter", "Carolina Tohá", "Paulina Vodanovic", "Jaime Mulet"] }, 
+                        { text: "Permitió recuperar la estabilidad", values: ["Evelyn Matthei", "Franco Parisi"] }, 
+                        { text: "Medida inevitable y justificable", values: ["José Antonio Kast", "Johannes Kaiser"] } ] },
+            { text: "¿Qué modelo de sistema de pensiones considera más adecuado?", options: [ 
+                        { text: "Sistema público de reparto solidario", values: ["Jeannette Jara"] }, 
+                        { text: "Modelo mixto con regulación estatal", values: ["Gonzalo Winter", "Carolina Tohá", "Paulina Vodanovic", "Jaime Mulet"] }, 
+                        { text: "Capitalización individual", values: ["Evelyn Matthei", "José Antonio Kast", "Johannes Kaiser", "Franco Parisi"] } ] },
+            { text: "¿Qué orientación debería tener una futura reforma tributaria?", options: [ 
+                        { text: "Elevar impuestos a grandes ingresos", values: ["Jeannette Jara", "Gonzalo Winter", "Paulina Vodanovic"] }, 
+                        { text: "Mantener niveles actuales", values: ["Carolina Tohá"] }, 
+                        { text: "Reducir y simplificar impuestos", values: ["Evelyn Matthei", "José Antonio Kast", "Johannes Kaiser", "Franco Parisi"] } ] }
+        ];
+
+        let currentQuestion = 0;
+        const scores = {};
+        candidates.forEach(c => scores[c] = 0);
+
+        const questionContainer = document.getElementById("question-container");
+        const nextButton = document.getElementById("next-button");
+        const resultContainer = document.getElementById("result");
+
+        function showQuestion() {
+            const question = questions[currentQuestion];
+            questionContainer.innerHTML = `<div class="question">${question.text}</div>`;
+            const optionsHtml = question.options.map((option, index) => 
+                `<button onclick='selectOption(${JSON.stringify(option.values)})'>${option.text}</button>`
+            ).join("");
+            questionContainer.innerHTML += `<div class="options">${optionsHtml}</div>`;
+            nextButton.style.display = "none";
+        }
+
+        function selectOption(values) {
+            values.forEach(candidate => {
+                if (scores[candidate] !== undefined) {
+                    scores[candidate] += 10;
+                }
+            });
+            nextButton.style.display = "inline-block";
+        }
+
+        function nextQuestion() {
+            currentQuestion++;
+            if (currentQuestion < questions.length) {
+                showQuestion();
+            } else {
+                showResult();
+            }
+        }
+
+        function showResult() {
+            questionContainer.classList.add("hidden");
+            nextButton.classList.add("hidden");
+            const sorted = Object.entries(scores).sort((a, b) => b[1] - a[1]);
+            resultContainer.innerHTML = `<h2>Resultados de Afinidad:</h2><ul>${sorted.map(([candidate, score]) => `<li>${candidate}: ${score}%</li>`).join('')}</ul>`;
+            resultContainer.classList.remove("hidden");
+        }
+
+        nextButton.addEventListener("click", nextQuestion);
+
+        showQuestion();
+    </script>
+</body>
+</html>
